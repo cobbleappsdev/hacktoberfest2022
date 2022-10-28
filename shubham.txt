@@ -1,4 +1,101 @@
-Things you do to get a free tshirt
-Things you do to get a free tshirt second pull request
-Things you do to get a free tshirt Thirt pull request
-Things you do to get a free tshirt fourth pull request
+#include <bits/stdc++.h>
+#define MN 100001
+#define MOD 1000000007
+using namespace std;
+
+typedef long long LL;
+typedef pair<LL, int> prileid;
+
+int prime_make[MN * 10], S[MN * 100], n, q, id[MN * 100], put_1[MN], NUM[MN];
+LL Maxna, MXa, a[MN];
+vector<prileid> T;
+vector<int> prm_make;
+
+LL MODEXP(LL x, LL y, int m) {
+	if (y == 0) return 1;
+	LL r = MODEXP(x, y / 2, m);
+	LL ans = r * r % m;
+	if (y % 2) ans = ans * x % m;
+	return ans; 
+}
+
+struct QEY{
+	int l, r, idx;
+	QEY(int ll = 0, int rr = 0, int iidx = 0) {
+		l = ll, r = rr, idx = iidx;
+	}
+};
+
+void calc(int pos, int& x, int& y, int step){
+	int u = NUM[id[pos]] + 1;
+	NUM[id[pos]] += step;
+	int v = NUM[id[pos]] + 1;
+	x = 1LL * x * v % MOD;
+	y = 1LL * y * u % MOD;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0); cout.tie(0);	
+	cin >> n >> q;
+	Maxna = LLONG_MAX, MXa = 0;	
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+		if (Maxna > a[i]) Maxna = a[i];
+		if (MXa < a[i]) MXa = a[i];
+	}
+	for (int i = 2; i < MN * 10; i++) {
+		if (!prime_make[i]) {
+			for (int j = i + i; j < MN * 10; j += i) prime_make[j] = 1;
+			prm_make.push_back(i);
+		}
+	}
+	
+	for (auto u : prm_make) {
+		LL k = (Maxna - 1) / u + 1;
+		for (LL i = k * u; i <= MXa; i += u) {
+			if (!S[i - Maxna]) S[i - Maxna] = u;
+		}
+	}
+	
+	for (int i = 0; i < MN * 100; i++) 
+		if(!S[i]) S[i] = i + Maxna;
+	
+	for (int i = 0; i < n; i++) T.push_back({S[a[i] - Maxna], i});
+	
+	sort(T.begin(), T.end(), [&](prileid x, prileid y){
+		return x.first < y.first;
+	});
+	
+	int cnt = 0;
+	for (int i = 0; i < T.size(); i++) {
+		if (i != 0 && T[i].first != T[i - 1].first) cnt++; 
+		id[T[i].second] = cnt;
+	}
+	
+	vector<QEY> Q;
+	for (int i = 0; i < q; i++) {
+		int l, r; cin >> l >> r;
+		l--, r--;
+		Q.push_back(QEY(l, r, i));
+	}
+	
+	int len = sqrt(n + 1) + 1;
+	sort(Q.begin(), Q.end(), [&](QEY x, QEY y){
+		if (x.l / len == y.l / len) return x.r < y.r;
+		else return x.l / len < y.l / len;
+	});
+	
+	int l = 0, r = 0, x = 2, y = 1;
+	NUM[id[0]]++;
+	for (int i = 0; i < q; i++) {
+		while (r < Q[i].r) calc(r + 1, x, y, 1), r++;
+		while (r > Q[i].r) calc(r, x, y, -1), r--;
+		while (l < Q[i].l) calc(l, x, y, -1), l++;
+		while (l > Q[i].l) calc(l - 1, x, y, 1), l--;
+		put_1[Q[i].idx] = 1LL * x * MODEXP(y, MOD - 2, MOD) % MOD;
+	}
+	for (int i = 0; i < q; i++) cout << (put_1[i] + MOD - 1) % MOD << endl;
+	
+	return 0;
+}
